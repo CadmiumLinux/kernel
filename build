@@ -1,0 +1,77 @@
+#!/bin/bash
+set -e
+set -x
+
+KROOT="$(dirname $(realpath $0))"
+ARCH="$1"
+KTREE="$2"
+KDIR="$KROOT/tmp/$KTREE"
+INSTALL="$KROOT/tmp/install"
+DIST="$KROOT/dist"
+THREADS=$(echo "if ($(nproc) > 2) $(nproc) - 2 else 1" | bc)
+
+case "$ARCH" in
+	arm64) ;;
+	arm) ;;
+	*)
+		echo "Unknown architeceture: $ARCH"
+		exit 1
+	;;
+esac
+
+case "$KTREE" in
+	mainline)
+		SOURCE="$(curl -sL https://www.kernel.org/ | grep "Download complete tarball" | head -n1 | tr '"' ' ' | awk '{print $3}')"
+		EXTENSION="tar.xz"
+		PATCHSUFFIX=".patch"
+		;;
+	jhovold-x1e)
+		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/wip/x1e80100-6.12.tar.gz"
+		EXTENSION="tar.gz"
+		PATCHSUFFIX=".x1e_patch"
+		;;
+	*)
+		echo "Unknown ktree: $KTREE"
+		exit 1
+		;;
+esac
+
+[ -e "$KDIR" ] && rm -rf "$KDIR"
+[ -e "$INSTALL" ] && rm -rf "$INSTALL"
+mkdir -p "$KDIR"
+mkdir -p "$INSTALL"
+
+cd "$KROOT/tmp"
+wget "$SOURCE" -O "$KTREE.$EXTENSION"
+bsdtar xf "$KTREE.$EXTENSION" --strip-components=1 -C "$KDIR"
+
+cd "$KDIR"
+
+for x in $(ls $KROOT/patches/*.$PATCHSUFFIX); do
+	echo "Applying $x"
+	patch -p1 --forward < $x
+done
+for x in $(ls $KROOT/patches/*.common_patch); do
+	echo "Applying $x"
+	patch -p1 --forward < $x
+done
+
+[ -f .config ] || cp "$KROOT/config.$ARCH" .config
+
+export ARCH
+make oldconfig LLVM=1
+#make nconfig LLVM=1 # if you want to customize config just uncomment this
+
+echo "Bulding $KTREE kernel for $ARCH in $(pwd) with $THREADS threads"
+time make -j"$THREADS" LLVM=1
+
+KRELEASE="$(make -s LLVM=1 kernelrelease)"
+
+make LLVM=1 INSTALL_MOD_PATH="$INSTALL/" modules_install
+make LLVM=1 INSTALL_DTBS_PATH="$INSTALL/boot/dtbs/" dtbs_install
+
+cp arch/arm64/boot/Image "$INSTALL/boot/"
+rm "$INSTALL/lib/modules/$KRELEASE/build"
+
+tar cJf "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" "$INSTALL"
+tar cJf "$KROOT/dist/$KTREE-$ARCH-sources.tar.xz" "$KDIR"
