@@ -23,12 +23,12 @@ case "$KTREE" in
 	mainline)
 		SOURCE="$(curl -sL https://www.kernel.org/ | grep "Download complete tarball" | head -n1 | tr '"' ' ' | awk '{print $3}')"
 		EXTENSION="tar.xz"
-		PATCHSUFFIX=".patch"
+		PATCHSUFFIX="patch"
 		;;
 	jhovold-x1e)
 		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/wip/x1e80100-6.12.tar.gz"
 		EXTENSION="tar.gz"
-		PATCHSUFFIX=".x1e_patch"
+		PATCHSUFFIX="x1e_patch"
 		;;
 	*)
 		echo "Unknown ktree: $KTREE"
@@ -73,5 +73,12 @@ make LLVM=1 INSTALL_DTBS_PATH="$INSTALL/boot/dtbs/" dtbs_install
 cp arch/arm64/boot/Image "$INSTALL/boot/"
 rm "$INSTALL/lib/modules/$KRELEASE/build"
 
-tar cJf "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" "$INSTALL"
-tar cJf "$KROOT/dist/$KTREE-$ARCH-sources.tar.xz" "$KDIR"
+cd "$INSTALL"
+tar cJf "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" ./
+sha1sum "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" > "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz.sha1"
+
+cd "$KDIR"
+tar cJf "$KROOT/dist/$KTREE-$ARCH-sources.tar.xz" ./
+sha1sum "$KROOT/dist/$KTREE-$ARCH-sources.tar.xz" > "$KROOT/dist/$KTREE-$ARCH-sources.tar.xz.sha1"
+
+echo "$KRELEASE" > "$KROOT/dist/$KTREE-$ARCH-krelease"
