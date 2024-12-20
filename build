@@ -26,7 +26,7 @@ case "$KTREE" in
 		PATCHSUFFIX="patch"
 		;;
 	jhovold-x1e)
-		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/wip/x1e80100-6.12.tar.gz"
+		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/wip/x1e80100-6.13-rc3-memlat.tar.gz"
 		EXTENSION="tar.gz"
 		PATCHSUFFIX="x1e_patch"
 		;;
