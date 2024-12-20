@@ -2,7 +2,7 @@ name: ARM64 Mainline autobuilder
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
