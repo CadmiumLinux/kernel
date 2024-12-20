@@ -22,13 +22,16 @@ esac
 case "$KTREE" in
 	mainline)
 		SOURCE="$(curl -sL https://www.kernel.org/ | grep "Download complete tarball" | head -n1 | tr '"' ' ' | awk '{print $3}')"
-		EXTENSION="tar.xz"
 		PATCHSUFFIX="patch"
+
+		FILENAME="$(basename $SOURCE)"
 		;;
 	jhovold-x1e)
-		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/wip/x1e80100-6.13-rc3-memlat.tar.gz"
-		EXTENSION="tar.gz"
+		GIT_REV="wip/x1e80100-6.13-rc3-memlat"
+		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/$GIT_REV.tar.gz"
 		PATCHSUFFIX="x1e_patch"
+
+		FILENAME="jhovold-x1e-$(basename $GIT_REV).tar.gz"
 		;;
 	*)
 		echo "Unknown ktree: $KTREE"
@@ -36,25 +39,31 @@ case "$KTREE" in
 		;;
 esac
 
-[ -e "$KDIR" ] && rm -rf "$KDIR"
-[ -e "$INSTALL" ] && rm -rf "$INSTALL"
 mkdir -p "$KDIR"
 mkdir -p "$INSTALL"
 
 cd "$KROOT/tmp"
-wget "$SOURCE" -O "$KTREE.$EXTENSION"
-bsdtar xf "$KTREE.$EXTENSION" --strip-components=1 -C "$KDIR"
+if [ ! -f "$FILENAME" ]; then
+	wget "$SOURCE" -O "$FILENAME"
+fi
+
+if [ ! -f "$KDIR" ]; then
+	bsdtar xf "$FILENAME" --strip-components=1 -C "$KDIR"
+fi
 
 cd "$KDIR"
 
-for x in $(ls $KROOT/patches/*.$PATCHSUFFIX); do
-	echo "Applying $x"
-	patch -p1 --forward < $x
-done
-for x in $(ls $KROOT/patches/*.common_patch); do
-	echo "Applying $x"
-	patch -p1 --forward < $x
-done
+
+if [ ! -f ".cadmium-patched" ]; then
+	for x in $(ls $KROOT/patches/*.$PATCHSUFFIX); do
+		echo "Applying $x"
+		patch -p1 --forward < $x
+	done
+	for x in $(ls $KROOT/patches/*.common_patch); do
+		echo "Applying $x"
+		patch -p1 --forward < $x
+	done
+fi
 
 [ -f .config ] || cp "$KROOT/config.$ARCH" .config
 
