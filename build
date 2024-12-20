@@ -73,6 +73,7 @@ make LLVM=1 INSTALL_DTBS_PATH="$INSTALL/boot/dtbs/" dtbs_install
 cp arch/arm64/boot/Image "$INSTALL/boot/"
 rm "$INSTALL/lib/modules/$KRELEASE/build"
 
+mkdir -p "$KROOT/dist"
 cd "$INSTALL"
 tar cJf "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" ./
 sha1sum "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz" > "$KROOT/dist/$KTREE-$ARCH-prebuilt.tar.xz.sha1"
