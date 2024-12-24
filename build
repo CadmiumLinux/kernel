@@ -64,6 +64,7 @@ if [ ! -f ".cadmium-patched" ]; then
 		echo "Applying $x"
 		patch -p1 --forward < $x
 	done
+	touch ".cadmium-patched"
 fi
 
 [ -f .config ] || cp "$KROOT/config.$ARCH" .config
