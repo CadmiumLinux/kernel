@@ -45,6 +45,7 @@ mkdir -p "$INSTALL"
 cd "$KROOT/tmp"
 if [ ! -f "$FILENAME" ]; then
 	wget "$SOURCE" -O "$FILENAME"
+	rm -rf "$KDIR"
 fi
 
 if [ ! -f "$KDIR" ]; then
