@@ -27,7 +27,7 @@ case "$KTREE" in
 		FILENAME="$(basename $SOURCE)"
 		;;
 	jhovold-x1e)
-		GIT_REV="wip/x1e80100-6.13-rc3-memlat"
+		GIT_REV="wip/x1e80100-6.13-rc4"
 		SOURCE="https://github.com/jhovold/linux/archive/refs/heads/$GIT_REV.tar.gz"
 		PATCHSUFFIX="x1e_patch"
 
