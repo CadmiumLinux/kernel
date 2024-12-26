@@ -39,7 +39,6 @@ case "$KTREE" in
 		;;
 esac
 
-mkdir -p "$KDIR"
 mkdir -p "$INSTALL"
 
 cd "$KROOT/tmp"
@@ -48,8 +47,9 @@ if [ ! -f "$FILENAME" ]; then
 	rm -rf "$KDIR"
 fi
 
-if [ ! -f "$KDIR" ]; then
-	bsdtar xf "$FILENAME" --strip-components=1 -C "$KDIR"
+if [ ! -d "$KDIR" ]; then
+	mkdir -p "$KDIR"
+	bsdtar xfm "$FILENAME" --strip-components=1 -C "$KDIR"
 fi
 
 cd "$KDIR"
